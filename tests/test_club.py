@@ -7,7 +7,8 @@ from jsonschema import validate
 from faker import Faker
 from schema.club_schema import create_success_club_schema, create_club_without_authorization, \
     create_club_without_invalid_access_token_schema, create_empty_telegram_schema, \
-    create_empty_description_schema, create_empty_year_schema, create_empty_author_schema, create_empty_title_schema
+    create_empty_description_schema, create_empty_year_schema, create_empty_author_schema, create_empty_title_schema, \
+    update_club_schema
 
 fake = Faker()
 API_URL = "https://book-club.qa.guru/api/v1"
@@ -53,6 +54,59 @@ def test_success_create_club():
     assert club_response_body["owner"] == USER_ID
     assert USER_ID in club_response_body["members"]
     assert club_response_body["modified"] is None
+
+def test_update_club():
+    auth_body = {"username": USERNAME, "password": PASSWORD}
+    response = requests.post(f"{API_URL}/auth/token/", json=auth_body)
+    access_token = response.json()["access"]
+
+    book_title = fake.catch_phrase()
+    book_authors = fake.name()
+    public_year = random.randint(1800, 2026)
+    description = fake.sentence()
+
+    club_body = {
+        "bookTitle": book_title,
+        "bookAuthors": book_authors,
+        "publicationYear": public_year,
+        "description": description,
+        "telegramChatLink": "https://t.me/qa-guru"
+    }
+
+    club_headers = {"Authorization": "Bearer " + access_token}
+    club_response = requests.post(f"{API_URL}/clubs/", headers=club_headers, json=club_body)
+    club_id = str(club_response.json()["id"])
+
+    new_book_title = fake.catch_phrase()
+    new_book_authors = fake.name()
+    new_public_year = random.randint(1800, 2026)
+    new_description = fake.sentence()
+
+    new_club_body = {
+        "bookTitle": new_book_title,
+        "bookAuthors": new_book_authors,
+        "publicationYear": new_public_year,
+        "description": new_description,
+        "telegramChatLink": "https://t.me/qa-guru-new"
+    }
+    new_club_headers = {"Authorization": "Bearer " + access_token}
+    put_response = requests.put(API_URL + "/clubs/" + club_id + "/", headers=new_club_headers, json=new_club_body)
+
+    print("\nStatus code: ", put_response.status_code)
+    print("Headers: ", put_response.headers)
+    print("Body: ", put_response.text)
+
+    body = put_response.json()
+    validate(body, schema=update_club_schema)
+
+    assert put_response.status_code == 200
+    assert body["bookTitle"] == new_club_body["bookTitle"]
+    assert body["bookAuthors"] == new_club_body["bookAuthors"]
+    assert body["publicationYear"] == new_club_body["publicationYear"]
+    assert body["description"] == new_club_body["description"]
+    assert body["telegramChatLink"] == new_club_body["telegramChatLink"]
+    assert body["modified"] is not None
+
 
 
 @pytest.mark.parametrize("data, error_field, error_text, schema", [
