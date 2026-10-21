@@ -90,7 +90,7 @@ def test_update_club():
         "telegramChatLink": "https://t.me/qa-guru-new"
     }
     new_club_headers = {"Authorization": "Bearer " + access_token}
-    put_response = requests.put(API_URL + "/clubs/" + club_id + "/", headers=new_club_headers, json=new_club_body)
+    put_response = requests.put(f"{API_URL}/clubs/{club_id}/", headers=new_club_headers, json=new_club_body)
 
     print("\nStatus code: ", put_response.status_code)
     print("Headers: ", put_response.headers)
