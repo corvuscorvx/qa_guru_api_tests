@@ -6,8 +6,8 @@ from typing import Any, Mapping
 from schema.auth_schema import success_auth_schema, incorrect_data_schema, empty_fields_schema, unsupported_media_type
 
 API_URL = "https://book-club.qa.guru/api/v1/auth/token/"
-USERNAME = "qa_test_user_name"
-PASSWORD = "1_qa_pas$"
+USERNAME = "test_name_qwe"
+PASSWORD = "test_pass_qwe"
 TOKEN_PATH = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey"
 
 
@@ -164,6 +164,7 @@ def test_empty_username_and_password():
     assert body["username"] == ["This field may not be blank."]
     assert body["password"] == ["This field may not be blank."]
 
+
 def test_wrong_content_type_auth():
     request_body = {"username": USERNAME, "password": PASSWORD}
     headers = {"content-type": "image/png"}
@@ -180,7 +181,3 @@ def test_wrong_content_type_auth():
     validate(body, schema=unsupported_media_type)
 
     assert body["detail"] == "Unsupported media type \"image/png\" in request."
-
-
-
-
